@@ -5,14 +5,15 @@
 		init: function(){
 
 		},
-		send: function(message){
-			alert(message)
+		send: function(data){
+			alert("this is the alert from send: ", data)
 			$.ajax({
 			  url: app.server,
 			  type: 'POST',
-			  data: JSON.stringify(message),
+			  data: JSON.stringify(data),
 			  contentType: 'application/json',
 			  success: function (data) {
+			  	app.fetch()
 			    console.log('chatterbox: Message sent');
 			  },
 			  error: function (data) {
@@ -29,7 +30,27 @@
 			  data: {'order': '-createdAt'},
 			  contentType: 'application/json',
 			  success: function (data) {
-			    console.log(data);
+			  	console.log(data)
+			    for (var i=0;i<data.results.length;i++){
+			    	if (data.results[i].roomname===$("#roomSelect option:selected").text()){
+			    		app.addMessage(data.results[i])
+			    	}
+			    }
+
+			    var rooms=[]
+
+			    for (var i=0;i<data.results.length;i++){
+			    	rooms.push(data.results[i].roomname)
+			    }
+
+			    rooms=_.uniq(rooms)
+
+			    for (var i=0;i<rooms.length;i++){
+			    	app.addRoom(rooms[i])
+			    }
+
+
+
 			  },
 			  error: function (data) {
 			    console.error('chatterbox: Failed to retrieve');
@@ -42,39 +63,58 @@
 		},
 
 		addMessage: function(message){
-			$("#chats").prepend("<div class='username'>"+message.username+"</div>")
+			var user = message.username
+			var box = "<div class='box'><div class='username "+user+"'>"+user+"</div><div class='text'>"+message.text+"</div></div>"
+			$("#chats").append(box)
 		},
 
 		addRoom: function(rooms){
-			$("#roomSelect").append("<div>"+rooms+"</div>")
+			$("#roomSelect").append("<option>"+rooms+"</option>")
 		},
 
 		addFriend: function(context){
-			$(context).addClass("friend")
+			var classHolder=$(context).attr('class').split(" ")
+			$("."+classHolder[1]).addClass("friend")
 		},
 
-		handleSubmit: function(){
-			var message = $("#message")
-			app.send(message.val())
-		}
+		// handleSubmit: function(){
+		// 	var message = $("#message")
+		// 	app.send(message.val())
+		// }
 
 
 	}
 
+		app.fetch()
+	window.setInterval(function(){
+		app.clearMessages()
+		app.fetch()
+	},10000)
+
 	$(document).ready(function(){
+
+
 		// $(".username").click(function(){app.addFriend()})
 		$(document).on('click', '.username', function(){
 			var context=this
 			app.addFriend(context)
 		})
 
-
-		$("#send .submit").click(function(){
-			app.handleSubmit();
+		$(document).on('click', '.submit', function(){
+			var userName = window.location.href.split('username=')[1];
+			console.log(userName);
+			var message = {
+				username: userName.slice(0,-1),
+				text:$("#message").val(),
+				roomname:$("#roomSelect option:selected").text()
+			}
+			console.log("username:"+message.username)
+			console.log("text: "+ message.text)
+			console.log("roomname:" + message.roomname)
+			app.send(message)
 		})
 
-
-
+		
 	})
 
 })();

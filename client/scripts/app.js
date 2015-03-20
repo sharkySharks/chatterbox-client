@@ -14,7 +14,6 @@
         contentType: 'application/json',
         success: function (data) {
           app.fetch()
-          alert("success!")
           console.log('chatterbox: Message sent');
         },
         error: function (data) {
@@ -24,7 +23,6 @@
     },
 
     fetch: function(){
-      // var ajaxData = data.reverse();
       $.ajax({
         url: app.server,
         type: 'GET',
@@ -96,8 +94,6 @@
         text:$("#message").val(),
         roomname:$("#roomSelect option:selected").text()
       }
-
-      alert(message)
       app.send(message)
     }
   }
